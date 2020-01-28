@@ -44,10 +44,14 @@
 							</span>
 						</td>
                         <td>{{ post.userId}}</td>
-                        <td>{{ post.title }}</td>
-                        <td>{{ post.body }}</td>
+                        <td v-if="post.title.length<7" v-b-tooltip.hover :title=post.title> {{ post.title }}</td>
+                        <td v-else v-b-tooltip.hover :title=post.title >{{ post.title.substring(0,7)+"..." }}</td>
+                        <td v-if="post.body.length<15" v-b-tooltip.hover :title=post.body> {{ post.body }}</td>
+                        <td v-else v-b-tooltip.hover :title=post.body>{{ post.body.substring(0,15)+"..." }}</td>
+                        <!-- <td>{{ post.title }}</td>
+                        <td>{{ post.body }}</td> -->
                         <td>
-                            <a href="#addPostModal" @click="editPost()" class="edit" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
+                            <a href="#addPostModal" @click="editPost(index,post._id)" class="edit" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
                             <a href="#deletePostModal" @click="deletePost(index,post._id)" class="delete" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Delete">&#xE872;</i></a>
                         </td>
                     </tr>
@@ -88,7 +92,7 @@
         
     </div>
     <div v-else>
-        <addPost :post="post" :addPost="addPost" @get="get($event)"/>    
+        <addPost :post="post" :addPost="addPost" :editKey="editKey" @get="get($event)"/>    
     </div>
     </div> 
 </template>
@@ -103,11 +107,14 @@ export default {
     components:{
         addPost
     },
+
     data(){
       return {
       posts: null,
       result: null,
-      addPost: false
+      addPost: false,
+      editKey: ''
+    //   status: '',
       }
     },
 
@@ -117,10 +124,15 @@ export default {
    
     methods: {
         reloadPage(){
-            window.location.reload()
+            // window.location.reload()
+             axios.get(API_URL) .then(response => {
+                  response.data.data
+                  this.posts = response.data.data
+            })
         },
 
         async getPost(){
+            // this.status = 'Loading...'
             const url  = API_URL 
             return (await axios.get(url)).data.data;
         },
@@ -134,8 +146,10 @@ export default {
             // return (await axios.delete(url)).data.data;
         },
 
+
         get(){
             this.addPost = false
+            // window.location.reload()
         },
 
         deletePost(index, key){
@@ -144,21 +158,22 @@ export default {
             })
         },
 
-        editPost(){
-            axios.patch('http://192.168.2.65:3030/posts?userId=1', { title : this.edittitle, body : this.editbody })
-        .then(response => {console.log("here",this.posts)
-          // this.posts[id] = response.data
-          // this.newtitle = ''
-          // this.newbody = ''
-          console.log("here",this.posts)
-          // handle success
-        })            
+         editPost(index,key){
+            this.editKey = key
+            this.addPost = true
+            // console.log(key)
+        },
 
-            axios.patch('http://192.168.2.65:3030/posts?userId=1').then(response=>{
-
-            })
-        }   
-        // patch("http://192.168.2.65:3030/posts/{id}")
+      
+        // editPost(post){
+        //     axios.put('http://192.168.2.65:3030/posts?userId=1', { title : this.edittitle, body : this.editbody })
+        // .then(response => {console.log("here",this.posts)
+        //   // this.posts[id] = response.data
+        //   // this.newtitle = ''
+        //   // this.newbody = ''
+        //   console.log("here",this.posts)
+        //   // handle success
+        // })            
     }
 }
 </script>
